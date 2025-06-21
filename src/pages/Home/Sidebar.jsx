@@ -2,7 +2,7 @@ import toast from "react-hot-toast";
 import LatestBets from "./LatestBets";
 import NumberOfRounds from "./NumberOfRounds";
 
-const Sidebar = ({ stake, setStake }) => {
+const Sidebar = ({ stake, setStake, handlePlaceBet }) => {
   const handleDecreaseAmount = () => {
     const decreaseAmount = stake / 2;
     if (decreaseAmount < 50) {
@@ -83,6 +83,7 @@ const Sidebar = ({ stake, setStake }) => {
                   ALL IN
                 </button>
                 <button
+                  onClick={handlePlaceBet}
                   className="relative w-full h-full flex-grow p-4 font-bold overflow-hidden rounded-xl active:scale-[0.99] cursor-pointer whitespace-nowrap"
                   style={{
                     background:

@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 
-const SelectLevel = ({ setSelectLevel, setGridColumn }) => {
+const SelectLevel = ({
+  setSelectLevel,
+  setGridColumn,
+  isCrystalBoxAvailable,
+  isBetPlaced,
+}) => {
   const [translateY, setTranslateY] = useState(0);
 
   const handleTranslate = (type) => {
@@ -47,8 +52,8 @@ const SelectLevel = ({ setSelectLevel, setGridColumn }) => {
         className="w-full relative transition-all top-0 left-0 max-w-xl mx-auto"
         style={{
           pointerEvents: "none",
-          transform: `translateY(0px)`,
-          opacity: 1,
+          transform: `translateY(${isBetPlaced ? "80" : "0"}px)`,
+          opacity: isBetPlaced ? "0" : "1",
           transitionDelay: "1s",
         }}
       >
@@ -305,9 +310,9 @@ const SelectLevel = ({ setSelectLevel, setGridColumn }) => {
       <div
         className="absolute top-0 left-0 flex flex-col justify-end w-full h-full gap-1 transition-all"
         style={{
-          transform: "translateY(80px)",
+          transform: `translateY(${isBetPlaced ? "0" : "80"}px)`,
           pointerEvents: "none",
-          opacity: 0,
+          opacity: isBetPlaced ? 1 : 0,
           transitionDelay: "1s",
         }}
       >
@@ -340,7 +345,7 @@ const SelectLevel = ({ setSelectLevel, setGridColumn }) => {
         <div className="flex w-full gap-2 p-2 text-xs rounded-t-2xl bg-zinc-800">
           <button
             className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border border-amber-600 transition-all text-white px-4 py-3 rounded-lg active:scale-95 font-bold w-full disabled:opacity-50"
-            disabled
+            disabled={!isCrystalBoxAvailable}
           >
             CASHOUT
           </button>
