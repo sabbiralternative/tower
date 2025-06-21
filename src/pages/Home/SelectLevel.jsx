@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
-const SelectLevel = () => {
+const SelectLevel = ({ setSelectLevel, setGridColumn }) => {
   const [translateY, setTranslateY] = useState(0);
 
   const handleTranslate = (type) => {
@@ -18,6 +18,29 @@ const SelectLevel = () => {
       }
     }
   };
+
+  useEffect(() => {
+    if (translateY === 0) {
+      setGridColumn(4);
+      setSelectLevel("easy");
+    }
+    if (translateY === -20) {
+      setGridColumn(3);
+      setSelectLevel("medium");
+    }
+    if (translateY === -40) {
+      setGridColumn(2);
+      setSelectLevel("hard");
+    }
+    if (translateY === -60) {
+      setGridColumn(3);
+      setSelectLevel("extreme");
+    }
+    if (translateY === -80) {
+      setGridColumn(4);
+      setSelectLevel("nightmare");
+    }
+  }, [translateY, setSelectLevel, setGridColumn]);
   return (
     <div className="relative w-full max-w-xl mx-auto h-fit">
       <div

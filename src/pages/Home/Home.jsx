@@ -1,8 +1,10 @@
+import { useState } from "react";
 import BetSlip from "./BetSlip";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
 
 const Home = () => {
+  const [stake, setStake] = useState(0);
   return (
     <main className="w-full h-full max-w-xl mx-auto lg:max-w-[1600px] lg:my-auto">
       <main className="w-full overflow-y-auto h-dvh min-h-dvh">
@@ -10,7 +12,7 @@ const Home = () => {
           <Navbar />
           <div className="flex flex-col flex-grow w-full lg:flex-row-reverse xl:max-h-[900px]">
             <BetSlip />
-            <Sidebar />
+            <Sidebar stake={stake} setStake={setStake} />
           </div>
         </div>
       </main>
