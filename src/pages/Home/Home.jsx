@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import BetSlip from "./BetSlip";
 import Navbar from "./Navbar";
 import Sidebar from "./Sidebar";
@@ -6,8 +6,10 @@ import { useOrderMutation } from "../../redux/features/events/events";
 import { generateRoundId } from "../../utils/generateRoundId";
 import toast from "react-hot-toast";
 import { selectLevelItems } from "../../static/selectLevel";
+import { playBetSound } from "../../utils/sound";
 
 const Home = () => {
+  const [disableCashOutRandom, setDisableCashOutRandom] = useState(false);
   const [selectLevel, setSelectLevel] = useState("easy");
   const [addOrder] = useOrderMutation();
   const [stake, setStake] = useState(0);
@@ -22,12 +24,20 @@ const Home = () => {
     nightmare: 24,
   };
 
+  const clickableBoxForLevel = {
+    easy: 4,
+    medium: 3,
+    hard: 2,
+    extreme: 3,
+    nightmare: 4,
+  };
+
   const boxArray = Array.from({ length: boxLength?.[selectLevel] }, (_, i) => ({
     name: `box${i + 1}`,
     clickable: false,
     id: i + 1,
     crystal: false,
-    mine: (i + 1) % 4 === 0,
+    mine: (i + 1) % clickableBoxForLevel[selectLevel] === 0,
     roundEnd: false,
     brightNess: false,
     isSelected: false,
@@ -35,8 +45,15 @@ const Home = () => {
   const [boxes, setBoxes] = useState(boxArray);
   const [selectLevelData, setSelectLevelData] = useState(data);
 
+  useEffect(() => {
+    const data = selectLevelItems.filter((item) => item.type === selectLevel);
+    setSelectLevelData(data);
+    setBoxes(boxArray);
+  }, [selectLevel]);
+
   const handlePlaceBet = async () => {
     if (stake) {
+      playBetSound();
       setBoxes(() => {
         return boxArray;
       });
@@ -64,6 +81,7 @@ const Home = () => {
       const res = await addOrder(payload).unwrap();
       // console.log(res);
       if (res?.success) {
+        setDisableCashOutRandom(false);
         setIsBetPlaced(true);
         setTimeout(() => {
           let recentResult = [];
@@ -98,9 +116,12 @@ const Home = () => {
           }
 
           // If at least 3 non-clickable items exist
-          if (falseIndexes.length >= 4) {
+          if (falseIndexes.length >= clickableBoxForLevel[selectLevel]) {
             // Take the *last* 3 (from the end of the array, i.e. the first 3 in falseIndexes array)
-            const indexesToUpdate = falseIndexes.slice(0, 4);
+            const indexesToUpdate = falseIndexes.slice(
+              0,
+              clickableBoxForLevel[selectLevel]
+            );
 
             indexesToUpdate.forEach((i) => {
               updatedBoxes[i] = {
@@ -112,7 +133,7 @@ const Home = () => {
 
           return updatedBoxes;
         });
-
+        setDisableCashOutRandom(false);
         setIsBetPlaced(true);
         toast.error(res?.Message);
       }
@@ -135,6 +156,10 @@ const Home = () => {
               isBetPlaced={isBetPlaced}
               selectLevel={selectLevel}
               setSelectLevel={setSelectLevel}
+              data={data}
+              disableCashOutRandom={disableCashOutRandom}
+              setDisableCashOutRandom={setDisableCashOutRandom}
+              clickableBoxForLevel={clickableBoxForLevel}
             />
             <Sidebar
               handlePlaceBet={handlePlaceBet}

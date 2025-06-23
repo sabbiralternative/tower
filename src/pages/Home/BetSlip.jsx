@@ -1,5 +1,6 @@
 import { useState } from "react";
 import SelectLevel from "./SelectLevel";
+import { playBetSound } from "../../utils/sound";
 
 const BetSlip = ({
   setSelectLevel,
@@ -8,11 +9,17 @@ const BetSlip = ({
   setBoxes,
   setSelectLevelData,
   isBetPlaced,
+  data,
+  disableCashOutRandom,
+  setDisableCashOutRandom,
+  clickableBoxForLevel,
+  selectLevel,
 }) => {
   const [gridColumn, setGridColumn] = useState(4);
   const isCrystalBoxAvailable = boxes?.find((box) => box.crystal);
 
   const handleClickBox = (box) => {
+    playBetSound();
     if (box.mine) {
       const updatedBoxes = boxes?.map((boxObj) => {
         return {
@@ -32,6 +39,7 @@ const BetSlip = ({
         };
       });
       setSelectLevelData(addBorderToLevelData);
+      setDisableCashOutRandom(true);
     } else {
       setBoxes((prevBoxes) => {
         const updatedBoxes = [...prevBoxes];
@@ -46,7 +54,7 @@ const BetSlip = ({
         for (let i = updatedBoxes.length - 1; i >= 0; i--) {
           if (updatedBoxes[i].clickable && !updatedBoxes[i].isSelected) {
             currentSet.push(i);
-            if (currentSet.length === 4) break;
+            if (currentSet.length === clickableBoxForLevel[selectLevel]) break;
           }
         }
 
@@ -72,7 +80,7 @@ const BetSlip = ({
               !currentSet.includes(i)
             ) {
               nextSet.push(i);
-              if (nextSet.length === 4) break;
+              if (nextSet.length === clickableBoxForLevel[selectLevel]) break;
             }
           }
 
@@ -101,6 +109,129 @@ const BetSlip = ({
       });
       setSelectLevelData(addBorderToLevelData);
     }
+  };
+
+  const pickRandom = () => {
+    playBetSound();
+    const availableClickableBox = boxes
+      .filter((box) => box.clickable && !box.isSelected)
+      .map((box) => box.id);
+    const randomId =
+      availableClickableBox[
+        Math.floor(Math.random() * availableClickableBox.length)
+      ];
+
+    const findBoxByRandomId = boxes.find((box) => box.id === randomId);
+    if (findBoxByRandomId.mine) {
+      const updatedBoxes = boxes?.map((boxObj) => {
+        return {
+          ...boxObj,
+          crystal: boxObj.mine ? false : true,
+          roundEnd: true,
+          brightNess: boxObj.crystal ? true : false,
+          clickable: false,
+        };
+      });
+      setBoxes(updatedBoxes);
+      const addBorderToLevelData = selectLevelData.map((item) => {
+        return {
+          ...item,
+          border: false,
+          isSelected: true,
+        };
+      });
+      setSelectLevelData(addBorderToLevelData);
+      setDisableCashOutRandom(true);
+    } else {
+      setBoxes((prevBoxes) => {
+        const updatedBoxes = [...prevBoxes];
+
+        // Get the index of the clicked box
+        const clickedIndex = updatedBoxes.findIndex(
+          (b) => b.id === findBoxByRandomId.id
+        );
+
+        if (clickedIndex === -1) return updatedBoxes; // safety check
+
+        // Step 1: Find the last 4 boxes that are clickable and not selected
+        const currentSet = [];
+        for (let i = updatedBoxes.length - 1; i >= 0; i--) {
+          if (updatedBoxes[i].clickable && !updatedBoxes[i].isSelected) {
+            currentSet.push(i);
+            if (currentSet.length === clickableBoxForLevel[selectLevel]) break;
+          }
+        }
+
+        // Step 2: If the clicked box is in that set
+        if (currentSet.includes(clickedIndex)) {
+          // a) Mark the current 4 boxes as not clickable and selected
+          currentSet.forEach((i) => {
+            updatedBoxes[i] = {
+              ...updatedBoxes[i],
+              clickable: false,
+              isSelected: true,
+              crystal:
+                updatedBoxes[i].id === findBoxByRandomId.id
+                  ? true
+                  : updatedBoxes[i].crystal,
+            };
+          });
+
+          // b) Find the next 4 boxes that are not clickable and not selected
+          const nextSet = [];
+          for (let i = updatedBoxes.length - 1; i >= 0; i--) {
+            if (
+              !updatedBoxes[i].clickable &&
+              !updatedBoxes[i].isSelected &&
+              !currentSet.includes(i)
+            ) {
+              nextSet.push(i);
+              if (nextSet.length === clickableBoxForLevel[selectLevel]) break;
+            }
+          }
+
+          // c) Make the next 4 boxes clickable
+          nextSet.forEach((i) => {
+            updatedBoxes[i] = {
+              ...updatedBoxes[i],
+              clickable: true,
+            };
+          });
+        }
+
+        return updatedBoxes;
+      });
+
+      const firstNonBorderObj = selectLevelData.find(
+        (item) => item.border === false && item.isSelected === false
+      );
+
+      const addBorderToLevelData = selectLevelData.map((item) => {
+        return {
+          ...item,
+          border: firstNonBorderObj.id === item.id ? true : false,
+          isSelected: firstNonBorderObj.id === item.id ? true : item.isSelected,
+        };
+      });
+      setSelectLevelData(addBorderToLevelData);
+    }
+  };
+
+  const handleCashOut = () => {
+    playBetSound();
+    const findBoxAndUpdate = boxes?.map((box) => ({
+      ...box,
+      clickable: false,
+      crystal: box?.mine ? false : true,
+      roundEnd: true,
+      isSelected: true,
+      brightNess: box.crystal ? true : false,
+    }));
+    setBoxes(findBoxAndUpdate);
+    setSelectLevelData(() => {
+      return data;
+    });
+    setDisableCashOutRandom(true);
   };
 
   return (
@@ -235,6 +366,9 @@ const BetSlip = ({
               setGridColumn={setGridColumn}
               setSelectLevel={setSelectLevel}
               isBetPlaced={isBetPlaced}
+              pickRandom={pickRandom}
+              handleCashOut={handleCashOut}
+              disableCashOutRandom={disableCashOutRandom}
             />
           </div>
           <div className="sr-only">

@@ -5,6 +5,9 @@ const SelectLevel = ({
   setGridColumn,
   isCrystalBoxAvailable,
   isBetPlaced,
+  pickRandom,
+  handleCashOut,
+  disableCashOutRandom,
 }) => {
   const [translateY, setTranslateY] = useState(0);
 
@@ -311,7 +314,7 @@ const SelectLevel = ({
         className="absolute top-0 left-0 flex flex-col justify-end w-full h-full gap-1 transition-all"
         style={{
           transform: `translateY(${isBetPlaced ? "0" : "80"}px)`,
-          pointerEvents: "none",
+          pointerEvents: isBetPlaced ? "auto" : "none",
           opacity: isBetPlaced ? 1 : 0,
           transitionDelay: "1s",
         }}
@@ -345,13 +348,15 @@ const SelectLevel = ({
         <div className="flex w-full gap-2 p-2 text-xs rounded-t-2xl bg-zinc-800">
           <button
             className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 border border-amber-600 transition-all text-white px-4 py-3 rounded-lg active:scale-95 font-bold w-full disabled:opacity-50"
-            disabled={!isCrystalBoxAvailable}
+            disabled={!isCrystalBoxAvailable || disableCashOutRandom}
+            onClick={handleCashOut}
           >
             CASHOUT
           </button>
           <button
+            disabled={disableCashOutRandom}
+            onClick={pickRandom}
             className="bg-zinc-500 border border-zinc-600 transition-all text-white px-4 py-3 rounded-lg active:scale-95 font-bold w-full disabled:opacity-50"
-            disabled
           >
             PICK RANDOM
           </button>
